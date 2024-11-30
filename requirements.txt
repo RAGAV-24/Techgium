@@ -1,0 +1,5 @@
+Flask
+torch
+opencv-python
+opencv-contrib-python
+Pillow
