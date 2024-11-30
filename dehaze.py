@@ -5,7 +5,9 @@ def dehaze(image):
     """Apply dehazing to an input image using Dark Channel Prior."""
     def get_dark_channel(image, size):
         """Compute the dark channel of the image."""
-        return cv2.min(cv2.min(image[:, :, 0], image[:, :, 1]), image[:, :, 2])
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (size, size))
+        dark_channel = cv2.erode(np.min(image, axis=2), kernel)
+        return dark_channel
 
     def get_atmospheric_light(image, dark_channel):
         """Estimate atmospheric light."""
@@ -26,8 +28,9 @@ def dehaze(image):
     transmission = get_transmission(image, atmospheric_light)
 
     transmission = np.clip(transmission, 0.1, 1)
-    guided_filter = cv2.ximgproc.createGuidedFilter(cv2.cvtColor((image * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY), 60, 1e-3)
-    transmission = guided_filter.filter(transmission)
+    gray_image = cv2.cvtColor((image * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY)
+    guided_filter = cv2.ximgproc.createGuidedFilter(gray_image, 60, 1e-3)
+    transmission_refined = guided_filter.filter(transmission.astype(np.float32))
 
-    result = (image - atmospheric_light) / transmission[..., None] + atmospheric_light
+    result = (image - atmospheric_light) / transmission_refined[..., None] + atmospheric_light
     return np.clip(result * 255, 0, 255).astype(np.uint8)
