@@ -1,5 +1,9 @@
-Flask
+ Flask
 torch
 opencv-python
 opencv-contrib-python
 Pillow
+yolov5
+torchvision
+torchaudio
+opencv-contrib-python
